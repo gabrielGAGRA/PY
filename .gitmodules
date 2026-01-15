@@ -1,3 +1,6 @@
 [submodule "Terceiros/3b1b-wordle-solver"]
 	path = Terceiros/3b1b-wordle-solver
 	url = https://github.com/woctezuma/3b1b-wordle-solver
+[submodule "Terceiros/investidor-ia"]
+	path = Terceiros/investidor-ia
+	url = https://github.com/renanmoretto/investidor-ia
