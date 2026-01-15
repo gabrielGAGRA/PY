@@ -1,0 +1,3 @@
+[submodule "Terceiros/3b1b-wordle-solver"]
+	path = Terceiros/3b1b-wordle-solver
+	url = https://github.com/woctezuma/3b1b-wordle-solver
