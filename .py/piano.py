@@ -43,10 +43,14 @@ if __name__ == "__main__":
     print("--- 1. Simulando Buzzer (Onda Quadrada) ---")
     play_buzzer_style(nota_do, 1.5, fs)
 
-    print("\n--- 2. Alternância perceptível (20 vezes por segundo) ---")
-    # Aqui você ouve claramente o "tremor" entre as duas notas
-    play_buzzer_alternation(nota_do, nota_si, 3, 20, fs)
-
     print("\n--- 3. Alternância no limite auditivo (2000 vezes por segundo) ---")
     # Aqui o som vira um timbre complexo (você não distingue as notas)
     play_buzzer_alternation(nota_do, nota_si, 3, 2000, fs)
+
+    print("\n---(20000 vezes por segundo) ---")
+    # Aqui o som vira um timbre complexo (você não distingue as notas)
+    play_buzzer_alternation(nota_do, nota_si, 3, 20000, fs)
+
+    print("\n---(40000 vezes por segundo) ---")
+    # Aqui o som vira um timbre complexo (você não distingue as notas)
+    play_buzzer_alternation(nota_do, nota_si, 3, 40000, fs)

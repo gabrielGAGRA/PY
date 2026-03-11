@@ -11,45 +11,63 @@ def play_buzzer_full(freq, duration, fs=44100):
     sd.wait()
 
 
-def play_buzzer_pwm(freq, duration, duty_cycle, switch_hz, fs=44100):
+def play_buzzer_pwm_native(freq, duration, duty_cycle, fs=44100):
     """
-    Alterna entre tocar e silêncio para simular controle de volume via PWM.
+    Simula volume no buzzer modulando a largura do pulso da própria nota
+    (em vez de ligar/desligar usando uma segunda frequência PWM externa).
 
-    - freq: frequência da nota (onda quadrada)
-    - duration: duração total em segundos
-    - duty_cycle: fração do tempo ligado (0.0 a 1.0). Ex: 0.5 = 50% do tempo tocando
-    - switch_hz: quantas vezes por segundo liga/desliga (frequência do PWM)
+    Quando distorcemos a largura do pulso da onda fundamental (ex: de 50% para 10%),
+    a nota percebida continua a mesma, mas a energia total na frequência
+    fundamental cai, criando uma percepção muito clara de redução de volume
+    em circuitos digitais e buzzers, sem distorção fantasma.
     """
     t = np.arange(int(fs * duration)) / fs
-    # Gera a onda quadrada completa
-    square_wave = 0.3 * np.sign(np.sin(2 * np.pi * freq * t))
 
-    # Cria a envoltória PWM: liga por duty_cycle% de cada período, desliga o resto
-    samples_per_period = int(fs / switch_hz)
-    samples_on = int(samples_per_period * duty_cycle)
+    # Cria uma rampa para cada ciclo da frequência (fase 0 a 1)
+    phase = (t * freq) % 1.0
 
-    envelope = np.zeros(len(t))
-    for i in range(0, len(t), samples_per_period):
-        end_on = min(i + samples_on, len(t))
-        envelope[i:end_on] = 1.0
-
-    output_wave = square_wave * envelope
+    # Sinal passa a ser ALTO apenas na fração `duty_cycle` de cada ciclo da própria nota!
+    # - duty_cycle = 0.5 (onda quadrada padrão = volume máximo = +energia na fundamental)
+    # - duty_cycle = 0.1 (pulsos bem curtos = volume baixo)
+    wave = np.where(phase < duty_cycle, 0.3, -0.3)
 
     print(
-        f"Buzzer a {freq}Hz — duty cycle {duty_cycle*100:.0f}% "
-        f"(PWM a {switch_hz}Hz)"
+        f"Buzzer a {freq:.0f}Hz — Duty Nativo {duty_cycle*100:.0f}% (Volume Reduzido)"
     )
-    sd.play(output_wave, fs)
+    sd.play(wave, fs)
     sd.wait()
 
 
 if __name__ == "__main__":
     fs = 44100
-    freq = 2000  # 2kHz — frequência típica de ressonância de buzzers piezo
 
-    print("=== Controle de Volume por PWM (liga/desliga) ===\n")
+    # Notas musicais na faixa aguda (oitava 6 — boa para buzzers)
+    notas = {
+        "Dó": 2093.00,  # C7
+        "Ré": 2349.32,  # D7
+        "Mi": 2637.02,  # E7
+        "Fá": 2793.83,  # F7
+        "Sol": 3135.96,  # G7
+        "Lá": 3520.00,  # A7
+        "Si": 3951.07,  # B7
+    }
 
-    # 4. Comparação de duty cycles com PWM rápido
-    print("\n--- 4. Escala de 'volumes' via duty cycle (PWM a 500Hz) ---")
-    for duty in [1.0, 0.75, 0.5, 0.25, 0.10]:
-        play_buzzer_pwm(freq, 1.5, duty, 500, fs)
+    print("=== Controle de Volume: PWM na própria Onda da Nota ===\n")
+
+    # 1. Escala a 100% de volume (Onda Quadrada 50% Duty Cycle)
+    print("--- 1. Escala musical (Volume Máximo - Duty 50%) ---")
+    for nome, freq in notas.items():
+        print(f"  {nome} ({freq:.0f}Hz)")
+        play_buzzer_pwm_native(freq, 0.5, 0.5, fs)
+
+    # 2. Mesma escala a ~30% de volume percebido (PWM Duty 10%)
+    print("\n--- 2. Escala musical (Volume Menor - Duty 10%) ---")
+    for nome, freq in notas.items():
+        print(f"  {nome} ({freq:.0f}Hz)")
+        play_buzzer_pwm_native(freq, 0.5, 0.1, fs)
+
+    # 3. Mesma escala bem baixa (PWM Duty 2%)
+    print("\n--- 3. Escala musical (Volume Baixinho - Duty 2%) ---")
+    for nome, freq in notas.items():
+        print(f"  {nome} ({freq:.0f}Hz)")
+        play_buzzer_pwm_native(freq, 0.5, 0.02, fs)
